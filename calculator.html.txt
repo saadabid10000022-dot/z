@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modern Glassmorphism Calculator</title>
+<style>
+:root {
+--bg-color: #f0f2f5;
+--calc-bg: #ffffff;
+--text-main: #2d3436;
+--accent-color: #6c5ce7;
+--accent-hover: #a29bfe;
+--danger-color: #ff7675;
+--shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+background-color: var(--bg-color);
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+}
+
+/* Calculator Container */
+.calculator {
+background-color: var(--calc-bg);
+width: 100%;
+max-width: 360px;
+padding: 25px;
+border-radius: 24px;
+box-shadow: var(--shadow);
+}
+
+/* Screen Display */
+.display {
+background-color: #f8f9fa;
+margin-bottom: 20px;
+padding: 20px;
+text-align: right;
+border-radius: 12px;
+min-height: 100px;
+display: flex;
+flex-direction: column;
+justify-content: flex-end;
+word-break: break-all;
+border: 1px solid #eee;
+}
+
+.previous-operand {
+color: #636e72;
+font-size: 1rem;
+margin-bottom: 5px;
+}
+
+.current-operand {
+color: var(--text-main);
+font-size: 2.2rem;
+font-weight: 600;
+}
+
+/* Grid Setup */
+.buttons {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 12px;
+}
+
+button {
+cursor: pointer;
+font-size: 1.25rem;
+font-weight: 500;
+border: none;
+border-radius: 12px;
+padding: 18px 0;
+background-color: #f1f3f5;
+color: var(--text-main);
+transition: all 0.2s ease;
+}
+
+button:hover {
+background-color: #e9ecef;
+transform: translateY(-2px);
+}
+
+button:active {
+transform: translateY(0);
+}
+
+/* Special Button Styles */
+.operator {
+color: var(--accent-color);
+background-color: #eeeafc;
+}
+
+.operator:hover {
+background-color: var(--accent-hover);
+color: white;
+}
+
+.span-two {
+grid-column: span 2;
+}
+
+.clear {
+color: var(--danger-color);
+}
+
+.equals {
+background-color: var(--accent-color);
+color: white;
+}
+
+.equals:hover {
+background-color: #5b4bc4;
+}
+
+/* Mobile Optimization */
+@media (max-width: 400px) {
+.calculator {
+max-width: 90%;
+padding: 15px;
+}
+button {
+padding: 15px 0;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="calculator">
+<div class="display">
+<div id="prev-display" class="previous-operand"></div>
+<div id="curr-display" class="current-operand">0</div>
+</div>
+<div class="buttons">
+<button class="span-two clear" onclick="clearDisplay()">AC</button>
+<button class="operator" onclick="deleteNumber()">⌫</button>
+<button class="operator" onclick="appendOperator('÷')">÷</button>
+
+<button onclick="appendNumber('7')">7</button>
+<button onclick="appendNumber('8')">8</button>
+<button onclick="appendNumber('9')">9</button>
+<button class="operator" onclick="appendOperator('×')">×</button>
+
+<button onclick="appendNumber('4')">4</button>
+<button onclick="appendNumber('5')">5</button>
+<button onclick="appendNumber('6')">6</button>
+<button class="operator" onclick="appendOperator('-')">-</button>
+
+<button onclick="appendNumber('1')">1</button>
+<button onclick="appendNumber('2')">2</button>
+<button onclick="appendNumber('3')">3</button>
+<button class="operator" onclick="appendOperator('+')">+</button>
+
+<button onclick="appendNumber('.')">.</button>
+<button onclick="appendNumber('0')">0</button>
+<button class="span-two equals" onclick="calculate()">=</button>
+</div>
+</div>
+
+<script>
+const prevDisplay = document.getElementById('prev-display');
+const currDisplay = document.getElementById('curr-display');
+
+let currentInput = '0';
+let previousInput = '';
+let operator = null;
+
+// Updates the screen text
+function updateDisplay() {
+currDisplay.innerText = currentInput;
+if (operator != null) {
+prevDisplay.innerText = `${previousInput} ${operator}`;
+} else {
+prevDisplay.innerText = '';
+}
+}
+
+// Handles number and decimal inputs
+function appendNumber(number) {
+if (number === '.' && currentInput.includes('.')) return;
+if (currentInput === '0' && number !== '.') {
+currentInput = number;
+} else {
+currentInput += number;
+}
+updateDisplay();
+}
+
+// Handles operator logic
+function appendOperator(op) {
+if (currentInput === '') return;
+if (previousInput !== '') {
+calculate();
+}
+operator = op;
+previousInput = currentInput;
+currentInput = '';
+updateDisplay();
+}
+
+function clearDisplay() {
+currentInput = '0';
+previousInput = '';
+operator = null;
+updateDisplay();
+}
+
+function deleteNumber() {
+if (currentInput === '0') return;
+currentInput = currentInput.slice(0, -1);
+if (currentInput === '') currentInput = '0';
+updateDisplay();
+}
+
+function calculate() {
+let computation;
+const prev = parseFloat(previousInput);
+const current = parseFloat(currentInput);
+
+if (isNaN(prev) || isNaN(current)) return;
+
+switch (operator) {
+case '+':
+computation = prev + current;
+break;
+case '-':
+computation = prev - current;
+break;
+case '×':
+computation = prev * current;
+break;
+case '÷':
+if (current === 0) {
+alert("Cannot divide by zero");
+clearDisplay();
+return;
+}
+computation = prev / current;
+break;
+default:
+return;
+}
+
+currentInput = computation.toString();
+operator = null;
+previousInput = '';
+updateDisplay();
+}
+
+// Keyboard Support
+document.addEventListener('keydown', (e) => {
+if (e.key >= 0 && e.key <= 9) appendNumber(e.key);
+if (e.key === '.') appendNumber('.');
+if (e.key === '=' || e.key === 'Enter') calculate();
+if (e.key === 'Backspace') deleteNumber();
+if (e.key === 'Escape') clearDisplay();
+if (e.key === '+') appendOperator('+');
+if (e.key === '-') appendOperator('-');
+if (e.key === '*') appendOperator('×');
+if (e.key === '/') appendOperator('÷');
+});
+</script>
+
+</body>
+</html>
